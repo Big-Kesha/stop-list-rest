@@ -12,6 +12,8 @@ import type { StopItemPayload } from '@/types/menu';
 import { Toast } from '@/shared/ui/Toast';
 import { useFilters } from '../model/use-filters';
 import { Filters } from './Filters';
+import { useEffect } from 'react';
+import { ToastContainer } from '@/shared/ui/ToastContainer';
 
 type Props = { initialFilters: MenuFilters };
 
@@ -29,7 +31,8 @@ export function StopListScreen({ initialFilters }: Props) {
   const openStopPanel = useStopListUI((s) => s.openStopPanel);
   const closeStopPanel = useStopListUI((s) => s.closeStopPanel);
 
-  const toast = useStopListUI((s) => s.toast);
+  const toasts = useStopListUI((s) => s.toasts);
+
   const showToast = useStopListUI((s) => s.showToast);
   const hideToast = useStopListUI((s) => s.hideToast);
 
@@ -91,14 +94,7 @@ export function StopListScreen({ initialFilters }: Props) {
         />
       )}
 
-      {toast && (
-        <Toast
-          key={toast.id}
-          kind={toast.kind}
-          text={toast.text}
-          onClose={hideToast}
-        />
-      )}
+      {toasts && <ToastContainer toasts={toasts} onClose={hideToast} />}
     </>
   );
 }

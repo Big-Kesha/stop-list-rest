@@ -17,6 +17,8 @@ export type Toast = {
   text: string;
 };
 
+const MAX_TOASTS = 3;
+
 type UIState = {
   stopPanelItemId: string | null;
   openStopPanel: (id: string) => void;
@@ -26,9 +28,9 @@ type UIState = {
   markPending: (entry: PendingEntry) => void;
   clearPending: (entry: PendingEntry) => void;
 
-  toast: Toast | null;
+  toasts: Toast[];
   showToast: (t: Omit<Toast, 'id'>) => void;
-  hideToast: () => void;
+  hideToast: (id: number) => void;
 };
 
 let toastCounter = 0;
@@ -47,7 +49,15 @@ export const useStopListUI = create<UIState>((set) => ({
       ),
     })),
 
-  toast: null,
-  showToast: (t) => set({ toast: { ...t, id: ++toastCounter } }),
-  hideToast: () => set({ toast: null }),
+  toasts: [],
+  showToast: (t) =>
+    set((s) => {
+      const next = [...s.toasts, { ...t, id: ++toastCounter }];
+      // Держим только последние MAX_TOASTS — старые вытесняются
+      return {
+        toasts: next.length > MAX_TOASTS ? next.slice(-MAX_TOASTS) : next,
+      };
+    }),
+  hideToast: (id) =>
+    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
