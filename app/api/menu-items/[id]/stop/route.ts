@@ -1,5 +1,4 @@
 // app/api/menu-items/[id]/stop/route.ts
-// TODO добавить валидацию по правилам
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stopItem, StoreError } from '@/server/menu-store';
