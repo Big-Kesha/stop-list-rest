@@ -1,23 +1,52 @@
-import { MenuItemStatus, Shop } from '@/types/menu';
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/router';
+import type { Shop } from '@/types/menu';
 
-// features/stop-list/model/filters.ts
-export function useFilters() {
-  const router = useRouter();
-  const params = useSearchParams();
+export type ShopFilter = Shop | 'all';
+export type StatusFilter = 'all' | 'available' | 'stopped';
 
-  const filters = {
-    shop: params.get('shop') as Shop | null,
-    status: params.get('status') as string | null, // TODO, нужен ли тут отдельный тип
+export type MenuFilters = {
+  shop: ShopFilter;
+  status: StatusFilter;
+};
+
+export const DEFAULT_FILTERS: MenuFilters = {
+  shop: 'all',
+  status: 'all',
+};
+
+const SHOPS: readonly Shop[] = ['kitchen', 'bar', 'pastry'];
+const STATUSES: readonly Exclude<StatusFilter, 'all'>[] = [
+  'available',
+  'stopped',
+];
+
+function isShop(v: unknown): v is Shop {
+  return typeof v === 'string' && (SHOPS as readonly string[]).includes(v);
+}
+
+function isStatus(v: unknown): v is Exclude<StatusFilter, 'all'> {
+  return typeof v === 'string' && (STATUSES as readonly string[]).includes(v);
+}
+
+export function parseFilters(raw: {
+  shop?: string | string[];
+  status?: string | string[];
+}): MenuFilters {
+  const shopRaw = Array.isArray(raw.shop) ? raw.shop[0] : raw.shop;
+  const statusRaw = Array.isArray(raw.status) ? raw.status[0] : raw.status;
+
+  return {
+    shop: isShop(shopRaw) ? shopRaw : DEFAULT_FILTERS.shop,
+    status: isStatus(statusRaw) ? statusRaw : DEFAULT_FILTERS.status,
   };
+}
 
-  const set = (next: Partial<typeof filters>) => {
-    const sp = new URLSearchParams(params);
-    Object.entries(next).forEach(([k, v]) => (v ? sp.set(k, v) : sp.delete(k)));
-    router.replace(`/?${sp}`); // replace, чтобы не засорять историю
-    // про роутер тоже бы разобраться
-  };
+export function filtersToQuery(filters: MenuFilters): string {
+  const sp = new URLSearchParams();
+  if (filters.shop !== 'all') sp.set('shop', filters.shop);
+  if (filters.status !== 'all') sp.set('status', filters.status);
+  return sp.toString();
+}
 
-  return { ...filters, set };
+export function isSameFilters(a: MenuFilters, b: MenuFilters): boolean {
+  return a.shop === b.shop && a.status === b.status;
 }

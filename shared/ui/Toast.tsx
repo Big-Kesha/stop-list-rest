@@ -2,13 +2,15 @@
 
 import { useEffect } from 'react';
 
-type Props = {
+export function Toast({
+  kind,
+  text,
+  onClose,
+}: {
   kind: 'ok' | 'error';
   text: string;
   onClose: () => void;
-};
-
-export function Toast({ kind, text, onClose }: Props) {
+}) {
   useEffect(() => {
     const t = setTimeout(onClose, 3000);
     return () => clearTimeout(t);

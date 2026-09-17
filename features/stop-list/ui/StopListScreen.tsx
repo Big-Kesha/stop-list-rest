@@ -1,46 +1,51 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useShallow } from 'zustand/react/shallow';
 import { menuItemsQueryOptions, type MenuFilters } from '../model/queries';
 import { useStopItem } from '../model/use-stop-item';
 import { useResumeItem } from '../model/use-resume-item';
-import type { StopItemPayload } from '@/types/menu';
+import { useStopListUI } from '../model/ui-store';
 import { StopListTable } from './StopListTable';
 import { StopReasonPanel } from './StopReasonPanel';
-import { Toast } from '@/shared/Toast';
+import type { StopItemPayload } from '@/types/menu';
+import { Toast } from '@/shared/ui/Toast';
 
-type Props = {
-  filters: MenuFilters;
-};
+type Props = { filters: MenuFilters };
 
 export function StopListScreen({ filters }: Props) {
-  const { data, isLoading, isError, error, refetch } = useQuery(
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery(
     menuItemsQueryOptions(filters)
   );
 
   const stopMutation = useStopItem();
   const resumeMutation = useResumeItem();
 
-  const [stopTargetId, setStopTargetId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    kind: 'ok' | 'error';
-    text: string;
-  } | null>(null);
+  const stopPanelItemId = useStopListUI((s) => s.stopPanelItemId);
+  const openStopPanel = useStopListUI((s) => s.openStopPanel);
+  const closeStopPanel = useStopListUI((s) => s.closeStopPanel);
 
-  const stopTarget = data?.find((i) => i.id === stopTargetId) ?? null;
+  const toast = useStopListUI((s) => s.toast);
+  const showToast = useStopListUI((s) => s.showToast);
+  const hideToast = useStopListUI((s) => s.hideToast);
+
+  const pendingIds = useStopListUI(
+    useShallow((s) => s.pending.map((p) => p.id))
+  );
+
+  const stopTarget = data?.find((i) => i.id === stopPanelItemId) ?? null;
 
   const handleStop = (payload: StopItemPayload) => {
-    if (!stopTargetId) return;
+    if (!stopPanelItemId) return;
     stopMutation.mutate(
-      { id: stopTargetId, payload },
+      { id: stopPanelItemId, payload },
       {
         onSuccess: () => {
-          setStopTargetId(null);
-          setToast({ kind: 'ok', text: 'Поставлено в стоп' });
+          closeStopPanel();
+          showToast({ kind: 'ok', text: 'Поставлено в стоп' });
         },
         onError: (e) => {
-          setToast({ kind: 'error', text: e.message });
+          showToast({ kind: 'error', text: e.message });
         },
       }
     );
@@ -48,8 +53,8 @@ export function StopListScreen({ filters }: Props) {
 
   const handleResume = (id: string) => {
     resumeMutation.mutate(id, {
-      onSuccess: () => setToast({ kind: 'ok', text: 'Снято со стопа' }),
-      onError: (e) => setToast({ kind: 'error', text: e.message }),
+      onSuccess: () => showToast({ kind: 'ok', text: 'Снято со стопа' }),
+      onError: (e) => showToast({ kind: 'error', text: e.message }),
     });
   };
 
@@ -58,27 +63,30 @@ export function StopListScreen({ filters }: Props) {
       <StopListTable
         items={data ?? []}
         isLoading={isLoading}
+        isFetching={isFetching}
         isError={isError}
         errorMessage={error?.message}
         onRetry={() => refetch()}
-        onStopClick={setStopTargetId}
+        isItemPending={(id) => pendingIds.includes(id)}
+        onStopClick={openStopPanel}
         onResumeClick={handleResume}
       />
 
       {stopTarget && (
         <StopReasonPanel
           item={stopTarget}
-          onCancel={() => setStopTargetId(null)}
+          onCancel={closeStopPanel}
           onSubmit={handleStop}
-          isPending={stopMutation.isPending}
+          isPending={pendingIds.includes(stopTarget.id)}
         />
       )}
 
       {toast && (
         <Toast
+          key={toast.id}
           kind={toast.kind}
           text={toast.text}
-          onClose={() => setToast(null)}
+          onClose={hideToast}
         />
       )}
     </>

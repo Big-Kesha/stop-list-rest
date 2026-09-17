@@ -1,43 +1,52 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { MenuFilters, menuKeys, stopMenuItem } from './queries';
+import { menuKeys, stopMenuItem } from './queries';
+import { useStopListUI } from './ui-store';
 import type { MenuItem, StopItemPayload } from '@/types/menu';
 
 type StopVars = { id: string; payload: StopItemPayload };
 
 export function useStopItem() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const markPending = useStopListUI((s) => s.markPending);
+  const clearPending = useStopListUI((s) => s.clearPending);
 
   return useMutation({
     mutationFn: (vars: StopVars) => stopMenuItem(vars.id, vars.payload),
+
     onMutate: async ({ id, payload }) => {
-      await queryClient.cancelQueries({ queryKey: menuKeys.lists() });
-      const prev = queryClient.getQueriesData<MenuItem[]>({
+      markPending({ id, reason: 'stop' });
+
+      await qc.cancelQueries({ queryKey: menuKeys.lists() });
+      const prev = qc.getQueriesData<MenuItem[]>({
         queryKey: menuKeys.lists(),
       });
-      queryClient.setQueriesData<MenuItem[]>(
-        { queryKey: menuKeys.lists() },
-        (items) =>
-          items?.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  status: {
-                    kind: 'stopped',
-                    reason: payload.reason,
-                    until: payload.until,
-                  },
-                  updatedAt: new Date().toISOString(),
-                }
-              : item
-          )
+
+      qc.setQueriesData<MenuItem[]>({ queryKey: menuKeys.lists() }, (items) =>
+        items?.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: {
+                  kind: 'stopped',
+                  reason: payload.reason,
+                  until: payload.until,
+                },
+                updatedAt: new Date().toISOString(),
+              }
+            : item
+        )
       );
+
       return { prev };
     },
+
     onError: (_err, _vars, ctx) => {
-      ctx?.prev.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      ctx?.prev.forEach(([key, data]) => qc.setQueryData(key, data));
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: menuKeys.lists() });
+
+    onSettled: (_data, _err, vars) => {
+      clearPending({ id: vars.id, reason: 'stop' });
+      qc.invalidateQueries({ queryKey: menuKeys.lists() });
     },
   });
 }
