@@ -1,19 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { MenuFilters, menuKeys, stopMenuItem } from './queries';
-import type { MenuItem, StopItemPayload } from '@/types/menu';
+import { menuKeys, resumeMenuItem } from './queries';
+import type { MenuItem } from '@/types/menu';
 
-type StopVars = { id: string; payload: StopItemPayload };
-
-export function useStopItem() {
+export function useResumeItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (vars: StopVars) => stopMenuItem(vars.id, vars.payload),
-    onMutate: async ({ id, payload }) => {
+    mutationFn: (id: string) => resumeMenuItem(id),
+
+    onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: menuKeys.lists() });
+
       const prev = queryClient.getQueriesData<MenuItem[]>({
         queryKey: menuKeys.lists(),
       });
+
       queryClient.setQueriesData<MenuItem[]>(
         { queryKey: menuKeys.lists() },
         (items) =>
@@ -21,21 +22,20 @@ export function useStopItem() {
             item.id === id
               ? {
                   ...item,
-                  status: {
-                    kind: 'stopped',
-                    reason: payload.reason,
-                    until: payload.until,
-                  },
+                  status: { kind: 'available' },
                   updatedAt: new Date().toISOString(),
                 }
               : item
           )
       );
+
       return { prev };
     },
-    onError: (_err, _vars, ctx) => {
+
+    onError: (_err, _id, ctx) => {
       ctx?.prev.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
+
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: menuKeys.lists() });
     },

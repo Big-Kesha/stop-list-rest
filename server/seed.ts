@@ -1,22 +1,18 @@
-import type { MenuItem, StopReason } from '@/types/menu';
+import type { MenuItem } from '@/types/menu';
 
-// Базовая дата — сегодня
 const today = new Date();
 
-// Хелпер: сдвиг от сегодня на N минут / часов
 const minutesFromNow = (m: number) =>
   new Date(today.getTime() + m * 60 * 1000).toISOString();
 
 const hoursFromNow = (h: number) =>
   new Date(today.getTime() + h * 60 * 60 * 1000).toISOString();
 
-// Дата "сегодня" (для updatedAt)
 const now = today.toISOString();
 
-// Сценарии для stopped.until — все в пределах 24 часов
-const in15Minutes = minutesFromNow(15); // через 15 минут
-const in5Hours = hoursFromNow(5); // через 5 часов
-const in23Hours = hoursFromNow(23); // почти максимум (23 < 24)
+const in15Minutes = minutesFromNow(15);
+const in5Hours = hoursFromNow(5);
+const in23Hours = hoursFromNow(23);
 
 export const SEED: MenuItem[] = [
   // Кухня — 6 позиций

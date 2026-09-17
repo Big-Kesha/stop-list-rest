@@ -1,10 +1,9 @@
 export type Shop = 'kitchen' | 'bar' | 'pastry';
 
+// TODO нет логики учета причин стопа
+// добавить сброс количества, если причина out_of_stock
 export type StopReason =
-  | 'out_of_stock' // закончились продукты
-  | 'equipment' // сломалось оборудование
-  | 'quality' // вопросы к качеству партии
-  | 'menu_change'; // позиция выведена из меню смены
+  'out_of_stock' | 'equipment' | 'quality' | 'menu_change';
 
 export type MenuItemStatus =
   | { kind: 'available' }

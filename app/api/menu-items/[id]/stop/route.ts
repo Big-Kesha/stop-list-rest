@@ -1,32 +1,6 @@
 // app/api/menu-items/[id]/stop/route.ts
 // TODO добавить валидацию по правилам
 
-// import { NextRequest, NextResponse } from 'next/server';
-// import { stopItem, StoreError } from '@/server/menu-store';
-// import type { StopItemPayload } from '@/types/menu';
-
-// export async function POST(
-//   req: NextRequest,
-//   { params }: { params: { id: string } }
-// ) {
-//   const body = (await req.json()) as StopItemPayload;
-
-//   try {
-//     const updated = await stopItem(params.id, body);
-//     return NextResponse.json(updated);
-//   } catch (error) {
-//     if (error instanceof StoreError) {
-//       return NextResponse.json(
-//         { error: error.message },
-//         { status: error.status }
-//       );
-//     }
-//     console.error('[POST /api/menu-items/:id/stop]', error);
-//     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
-//   }
-// }
-
-// app/api/menu-items/[id]/stop/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { stopItem, StoreError } from '@/server/menu-store';
 import type { StopItemPayload, StopReason } from '@/types/menu';
@@ -65,7 +39,6 @@ export function parseStopPayload(body: unknown): ParseResult {
 
   const { reason, until } = body as Record<string, unknown>;
 
-  // Причина стопа — обязательна и только из списка
   if (typeof reason !== 'string' || reason.length === 0) {
     return { ok: false, error: 'Укажите причину стопа' };
   }
@@ -73,7 +46,6 @@ export function parseStopPayload(body: unknown): ParseResult {
     return { ok: false, error: 'Недопустимая причина стопа' };
   }
 
-  // Срок стопа — null либо валидное будущее время
   let normalizedUntil: string | null = null;
   if (until !== null && until !== undefined) {
     if (typeof until !== 'string') {

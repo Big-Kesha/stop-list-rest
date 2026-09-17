@@ -1,7 +1,6 @@
 import type { MenuItem, StopItemPayload } from '@/types/menu';
 import { SEED } from './seed';
 
-// TODO дописать статусы ошибок
 export class StoreError extends Error {
   constructor(
     message: string,
@@ -27,7 +26,6 @@ async function withDelayAndChaos<T>(fn: () => T): Promise<T> {
   return fn();
 }
 
-// Публичное API стора — роуты работают только через него
 export async function getAllItems(): Promise<MenuItem[]> {
   return withDelayAndChaos(() => Array.from(store.values()));
 }
