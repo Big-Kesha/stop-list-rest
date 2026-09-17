@@ -55,9 +55,6 @@ export async function resumeMenuItem(id: string): Promise<MenuItem> {
   return res.json();
 }
 
-// ─── queryOptions ─────────────────────────────────────────────
-// Фабрика настроек запроса. Один источник правды: и для useQuery в компоненте,
-// и для prefetch, и для ensureQueryData на сервере (если понадобится).
 export const menuItemsQueryOptions = (filters: MenuFilters) =>
   queryOptions({
     queryKey: menuKeys.list(filters),

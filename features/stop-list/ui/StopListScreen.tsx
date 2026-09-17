@@ -10,12 +10,16 @@ import { StopListTable } from './StopListTable';
 import { StopReasonPanel } from './StopReasonPanel';
 import type { StopItemPayload } from '@/types/menu';
 import { Toast } from '@/shared/ui/Toast';
+import { useFilters } from '../model/use-filters';
+import { Filters } from './Filters';
 
-type Props = { filters: MenuFilters };
+type Props = { initialFilters: MenuFilters };
 
-export function StopListScreen({ filters }: Props) {
+export function StopListScreen({ initialFilters }: Props) {
+  const filters = useFilters(initialFilters);
+
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery(
-    menuItemsQueryOptions(filters)
+    menuItemsQueryOptions({ shop: filters.shop, status: filters.status })
   );
 
   const stopMutation = useStopItem();
@@ -60,6 +64,12 @@ export function StopListScreen({ filters }: Props) {
 
   return (
     <>
+      <Filters
+        shop={filters.shop}
+        status={filters.status}
+        onShopChange={filters.setShop}
+        onStatusChange={filters.setStatus}
+      />
       <StopListTable
         items={data ?? []}
         isLoading={isLoading}

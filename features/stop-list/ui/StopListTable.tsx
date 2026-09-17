@@ -40,12 +40,14 @@ export function StopListTable({
   return (
     <div className="relative">
       {isRefetching && (
-        <div className="absolute right-2 top-2 text-xs text-ink-subtle">
+        <div className="absolute right-2 top-2 z-10 text-xs text-ink-subtle">
           обновление…
         </div>
       )}
 
-      <Table className={isRefetching ? 'opacity-70 transition-opacity' : ''}>
+      <Table
+        className={`min-w-225 ${isRefetching ? 'opacity-70 transition-opacity' : ''}`}
+      >
         <THead>
           <TR>
             <TH>Название</TH>

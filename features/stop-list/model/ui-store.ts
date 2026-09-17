@@ -31,8 +31,6 @@ type UIState = {
   hideToast: () => void;
 };
 
-// ─── Стор ──────────────────────────────────────────────────────
-
 let toastCounter = 0;
 
 export const useStopListUI = create<UIState>((set) => ({
