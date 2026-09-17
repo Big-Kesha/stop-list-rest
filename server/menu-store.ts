@@ -1,4 +1,4 @@
-import type { MenuItem, StopItemPayload, StopReason } from '@/types/menu';
+import type { MenuItem, StopItemPayload } from '@/types/menu';
 import { SEED } from './seed';
 
 // TODO дописать статусы ошибок
@@ -57,6 +57,8 @@ export async function stopItem(
 export async function resumeItem(id: string): Promise<MenuItem> {
   return withDelayAndChaos(() => {
     const item = store.get(id);
+    console.log('log id', id);
+
     if (!item) throw new StoreError('Позиция не найдена', 404);
 
     const updated: MenuItem = {

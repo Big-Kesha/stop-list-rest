@@ -95,7 +95,7 @@ export function parseStopPayload(body: unknown): ParseResult {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let body: unknown;
   try {
@@ -110,7 +110,8 @@ export async function POST(
   }
 
   try {
-    const updated = await stopItem(params.id, parsed.value);
+    const { id } = await params;
+    const updated = await stopItem(id, parsed.value);
     return NextResponse.json(updated);
   } catch (error) {
     if (error instanceof StoreError) {

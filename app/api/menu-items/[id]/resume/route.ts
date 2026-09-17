@@ -4,10 +4,11 @@ import { resumeItem, StoreError } from '@/server/menu-store';
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const updated = await resumeItem(params.id);
+    const { id } = await params;
+    const updated = await resumeItem(id);
     return NextResponse.json(updated);
   } catch (error) {
     if (error instanceof StoreError) {
